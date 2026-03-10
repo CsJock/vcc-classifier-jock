@@ -35,19 +35,6 @@ uv run uvicorn app.main:app --reload --port 8080
 
 開啟 http://localhost:8080 使用 Web UI。
 
-## 地端啟動（不影響雲端部署）
-
-```bash
-cp .env.local.example .env.local
-# 編輯 .env.local 填入本機用 key
-./run_local.sh
-```
-
-說明：
-- `run_local.sh` 只會讀 `.env.local`
-- `deploy.sh` 仍只讀 `.env`（Cloud Run 佈署設定不變）
-- `.env.local` 已加入 `.gitignore`，不會混入版本控制
-
 ## CSV 格式
 
 上傳的 CSV 必須包含以下欄位：
