@@ -1,9 +1,7 @@
 import json
 import logging
 
-import anthropic
-
-from app.config import settings
+from app.services.llm import complete as llm_complete
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +37,13 @@ async def categorize_items(vcc_items: list[dict]) -> dict:
         for item in vcc_items
     )
 
-    client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
-    response = await client.messages.create(
-        model=settings.anthropic_model_strong,
+    raw = await llm_complete(
+        system_prompt=CATEGORIZE_PROMPT,
+        user_prompt=f"以下是 VCC 可行的費用項目：\n\n{items_text}",
+        tier="strong",
         max_tokens=4096,
-        system=CATEGORIZE_PROMPT,
-        messages=[{"role": "user", "content": f"以下是 VCC 可行的費用項目：\n\n{items_text}"}],
     )
-
-    raw = response.content[0].text.strip()
+    raw = raw.strip()
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
         if raw.endswith("```"):
