@@ -208,6 +208,12 @@ function setStep(n) {
   }
 }
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
 function formatNumber(n) {
   return Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
 }
@@ -309,7 +315,7 @@ function renderStep2CompanySelector() {
   }
 
   select.innerHTML = companies
-    .map(name => `<option value="${name}">${name}（${getCompanyExecutionLabel(name)}）</option>`)
+    .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}（${escapeHtml(getCompanyExecutionLabel(name))}）</option>`)
     .join('');
   select.value = selectedReportCompany;
   select.onchange = () => {
@@ -337,7 +343,7 @@ function renderReportCompanySelector() {
 
   wrap.classList.remove('hidden');
   select.innerHTML = companies
-    .map(name => `<option value="${name}">${name}（${getCompanyExecutionLabel(name)}）</option>`)
+    .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}（${escapeHtml(getCompanyExecutionLabel(name))}）</option>`)
     .join('');
   if (selectedReportCompany && companies.includes(selectedReportCompany)) {
     select.value = selectedReportCompany;
@@ -516,11 +522,11 @@ function renderStep2() {
   const tbody = document.getElementById('resultBody');
   tbody.innerHTML = r.items.map(item => `
     <tr>
-      <td>${item['公司名稱'] || ''}</td>
-      <td>${item['費用項目名稱'] || ''}</td>
+      <td>${escapeHtml(item['公司名稱'] || '')}</td>
+      <td>${escapeHtml(item['費用項目名稱'] || '')}</td>
       <td>${formatNumber(item['金額累計'] || 0)}</td>
-      <td>${item['交易筆數'] || ''}</td>
-      <td>${item['VCC適用等級'] || ''}</td>
+      <td>${escapeHtml(item['交易筆數'] || '')}</td>
+      <td>${escapeHtml(item['VCC適用等級'] || '')}</td>
     </tr>
   `).join('');
 
@@ -853,10 +859,10 @@ function showGammaResult(result) {
   if (result.status === 'completed') {
     let html = '<h3 style="margin-bottom:8px;color:#4caf50">簡報生成完成！</h3>';
     if (result.gamma_url) {
-      html += `<p><a href="${result.gamma_url}" target="_blank">在 Gamma 中檢視簡報 →</a></p>`;
+      html += `<p><a href="${escapeHtml(result.gamma_url)}" target="_blank">在 Gamma 中檢視簡報 →</a></p>`;
     }
     if (result.export_url) {
-      html += `<p><a href="${result.export_url}" target="_blank">下載 PPTX 檔案 →</a></p>`;
+      html += `<p><a href="${escapeHtml(result.export_url)}" target="_blank">下載 PPTX 檔案 →</a></p>`;
     }
     el.innerHTML = html;
   } else {

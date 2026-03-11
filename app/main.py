@@ -334,7 +334,9 @@ async def prepare_presentation_csv(
 @app.get("/api/download/{filename}")
 async def download(filename: str):
     """下載分析 CSV。"""
-    filepath = job_manager.TEMP_DIR / filename
+    filepath = (job_manager.TEMP_DIR / filename).resolve()
+    if not filepath.is_relative_to(job_manager.TEMP_DIR.resolve()):
+        raise HTTPException(400, detail="無效的檔案名稱")
     if not filepath.exists():
         raise HTTPException(404, detail="檔案不存在")
     encoded = quote(filename)
