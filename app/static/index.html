@@ -25,7 +25,7 @@
   .step-number.done { background: #4caf50; }
   .step-title { font-size: 1.1rem; font-weight: 600; color: var(--bluegray); }
   label { display: block; font-weight: 500; margin-bottom: 4px; color: var(--bluegray); }
-  input[type="text"], input[type="file"] { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; }
+  input[type="text"], input[type="file"], select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; background: #fff; }
   input[type="text"]:focus { outline: none; border-color: var(--orange); }
   .btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -35,21 +35,19 @@
   .btn-secondary:hover:not(:disabled) { opacity: 0.9; }
   .btn-outline { background: #fff; color: var(--orange); border: 2px solid var(--orange); }
   .error { color: var(--red-orange); font-size: 0.9rem; margin-bottom: 8px; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 16px 0; }
   .stat-card { background: #f9f9f9; border-radius: 8px; padding: 12px; text-align: center; }
   .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--bluegray); }
   .stat-card .label { font-size: 0.8rem; color: var(--gray-600); }
-  .stat-card.yes .value { color: #4caf50; }
-  .stat-card.no .value { color: var(--red-orange); }
-  .stat-card.maybe .value { color: var(--yellow); }
+  .stat-card.level-absolute .value { color: #166534; }
+  .stat-card.level-high .value { color: #2e7d32; }
+  .stat-card.level-conditional .value { color: #f57f17; }
+  .stat-card.level-review .value { color: #8d6e63; }
+  .stat-card.level-no .value { color: #c62828; }
   table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 12px 0; }
   th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
   th { background: var(--bluegray); color: #fff; font-weight: 500; position: sticky; top: 0; }
   .table-wrap { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
-  .badge { padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-  .badge-yes { background: #e8f5e9; color: #2e7d32; }
-  .badge-no { background: #fce4ec; color: #c62828; }
-  .badge-maybe { background: #fff8e1; color: #f57f17; }
   .loading { display: none; align-items: center; gap: 8px; color: var(--gray-600); }
   .loading.show { display: flex; }
   .spinner { width: 20px; height: 20px; border: 3px solid #eee; border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -68,6 +66,11 @@
   .category-title { font-weight: 600; color: var(--bluegray); margin-bottom: 8px; font-size: 0.95rem; }
   .gamma-result { margin-top: 16px; padding: 16px; background: #f0f7ff; border-radius: 8px; }
   .gamma-result a { color: var(--orange); font-weight: 600; }
+  .mode-row { display: flex; gap: 16px; margin-bottom: 12px; }
+  .mode-row label { display: flex; gap: 6px; align-items: center; font-weight: 500; margin-bottom: 0; }
+  .hidden { display: none; }
+  .job-logs { margin-top: 8px; background: #0f172a; color: #d1e3ff; border-radius: 8px; padding: 10px; max-height: 180px; overflow-y: auto; font-size: 0.8rem; line-height: 1.45; }
+  .markdown-box { width: 100%; min-height: 280px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
 </style>
 </head>
 <body>
@@ -85,18 +88,28 @@
   <div class="step active" id="step1">
     <div class="step-header">
       <div class="step-number">1</div>
-      <div class="step-title">上傳客戶費用 CSV</div>
+      <div class="step-title">上傳費用 CSV</div>
     </div>
-    <label for="companyName">公司名稱</label>
-    <input type="text" id="companyName" placeholder="例：出口設計有限公司">
-    <label for="taxId">統一編號</label>
-    <input type="text" id="taxId" placeholder="例：12345678">
-    <label for="csvFile">費用 CSV 檔案</label>
+    <label>上傳模式</label>
+    <div class="mode-row">
+      <label><input type="radio" name="uploadMode" value="analyze" checked onchange="onModeChange()"> 分析模式（未標註）</label>
+      <label><input type="radio" name="uploadMode" value="ppt_ready" onchange="onModeChange()"> PPT模式（已標註）</label>
+    </div>
+    <div id="companyNameGroup" class="hidden">
+      <label for="companyName">公司名稱（PPT模式可選）</label>
+      <input type="text" id="companyName" placeholder="例：出口設計有限公司">
+    </div>
+    <label for="csvFile" id="csvLabel">費用 CSV 檔案（未標註 VCC適用等級）</label>
     <input type="file" id="csvFile" accept=".csv">
     <p class="error" id="step1Error"></p>
     <div class="loading" id="step1Loading">
       <div class="spinner"></div>
-      <span>正在分析中，請稍候...</span>
+      <span id="step1LoadingText">正在分析中，請稍候...</span>
+    </div>
+    <div id="analyzeProgress" class="hidden">
+      <p class="hint" id="analyzeMeta"></p>
+      <pre id="analyzeLogs" class="job-logs"></pre>
+      <a id="cacheDownloadLink" class="hint" href="#" target="_blank" rel="noopener">下載逐段快取紀錄 (JSON)</a>
     </div>
     <button class="btn btn-primary" id="btnAnalyze" onclick="analyze()">開始分析</button>
   </div>
@@ -108,9 +121,14 @@
       <div class="step-title">VCC 適性分析結果</div>
     </div>
     <div class="stats" id="statsArea"></div>
+    <div id="step2CompanyWrap" class="hidden">
+      <label for="step2CompanySelect">選擇要進入 Step3 生成簡報的公司</label>
+      <select id="step2CompanySelect"></select>
+      <p class="hint" id="step2CompanyHint"></p>
+    </div>
     <div class="table-wrap">
       <table id="resultTable">
-        <thead><tr><th>費用項目名稱</th><th>金額累計</th><th>交易筆數</th><th>VCC判斷</th></tr></thead>
+        <thead><tr><th>公司名稱</th><th>費用項目名稱</th><th>金額累計</th><th>交易筆數</th><th>VCC適用等級</th></tr></thead>
         <tbody id="resultBody"></tbody>
       </table>
     </div>
@@ -127,20 +145,58 @@
       <div class="step-number">3</div>
       <div class="step-title">分類 & Gamma 簡報生成</div>
     </div>
+    <div id="reportCompanyWrap" class="hidden">
+      <label for="reportCompanySelect">選擇要生成簡報的公司</label>
+      <select id="reportCompanySelect"></select>
+      <p class="hint" id="reportCompanyHint"></p>
+    </div>
     <div id="categoryArea"></div>
+    <div id="markdownSection" class="hidden">
+      <label for="markdownEditor">簡報內容 Markdown（可直接編輯）</label>
+      <textarea id="markdownEditor" class="markdown-box"></textarea>
+      <p class="hint">確認內容後再送進 Gamma 生成投影片。</p>
+    </div>
     <div class="loading" id="step3Loading">
       <div class="spinner"></div>
       <span id="step3Status">正在分類並生成簡報...</span>
     </div>
     <div class="progress-bar" id="progressBar" style="display:none"><div class="fill" id="progressFill"></div></div>
-    <button class="btn btn-primary" id="btnGenerate" onclick="generatePresentation()">開始生成簡報</button>
+    <div class="actions">
+      <button class="btn btn-outline" id="btnBackStep2" onclick="goToStep2FromStep3()">返回 Step2 切換公司</button>
+      <button class="btn btn-primary" id="btnGenerateMarkdown" onclick="generateMarkdownPreview()">1) 先產生簡報內容</button>
+      <button class="btn btn-secondary hidden" id="btnSendGamma" onclick="sendToGamma()">2) 送出到 Gamma</button>
+    </div>
     <div class="gamma-result" id="gammaResult" style="display:none"></div>
   </div>
 </div>
 
 <script>
 let analyzeResult = null;
-let categorizeResult = null;
+let analyzeJobId = '';
+let selectedReportCompany = '';
+let currentTargetCompany = '';
+let reportCacheByCompany = {};
+let gammaPollingByCompany = {};
+let activeDataVersion = 0;
+
+function getSelectedMode() {
+  const selected = document.querySelector('input[name="uploadMode"]:checked');
+  return selected ? selected.value : 'analyze';
+}
+
+function onModeChange() {
+  const mode = getSelectedMode();
+  const isAnalyzeMode = mode === 'analyze';
+
+  document.getElementById('companyNameGroup').classList.toggle('hidden', isAnalyzeMode);
+  document.getElementById('analyzeProgress').classList.add('hidden');
+  document.getElementById('analyzeMeta').textContent = '';
+  document.getElementById('analyzeLogs').textContent = '';
+  document.getElementById('csvLabel').textContent = isAnalyzeMode
+    ? '請上傳含所有公司費用的CSV 檔案（未標註 VCC適用等級）'
+    : '請上傳以分析完畢的費用檔案（需含 VCC適用等級）';
+  document.getElementById('btnAnalyze').textContent = isAnalyzeMode ? '開始分析' : '載入已標註資料';
+}
 
 function setStep(n) {
   for (let i = 1; i <= 3; i++) {
@@ -156,40 +212,219 @@ function formatNumber(n) {
   return Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
 }
 
-function badgeClass(v) {
-  if (v === '可以') return 'badge-yes';
-  if (v === '不行') return 'badge-no';
-  return 'badge-maybe';
+function getVccLevel(item) {
+  return (item['VCC適用等級'] || '').trim();
+}
+
+function getItemCompanyName(item) {
+  return (item['公司名稱'] || '').trim();
+}
+
+function isPptCandidate(item) {
+  const level = getVccLevel(item);
+  return ['絕對適合', '高度適合', '條件適合'].includes(level);
+}
+
+function extractCompanyNames(items) {
+  const names = (items || [])
+    .map(getItemCompanyName)
+    .filter(Boolean);
+  return [...new Set(names)].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function resetPresentationCaches() {
+  activeDataVersion += 1;
+  reportCacheByCompany = {};
+  gammaPollingByCompany = {};
+  selectedReportCompany = '';
+  currentTargetCompany = '';
+}
+
+function ensureCompanyCache(companyName) {
+  if (!companyName) return null;
+  if (!reportCacheByCompany[companyName]) {
+    reportCacheByCompany[companyName] = {
+      companyName,
+      markdown: '',
+      categories: {},
+      eligibleItemCount: 0,
+      status: 'idle',
+      statusText: '',
+      progress: 0,
+      gammaResult: null,
+      generationId: '',
+      updatedAt: Date.now(),
+    };
+  }
+  return reportCacheByCompany[companyName];
+}
+
+function getCompanyExecutionLabel(companyName) {
+  const state = reportCacheByCompany[companyName];
+  if (!state) return '未開始';
+  if (state.status === 'gamma_completed') return 'Gamma完成';
+  if (state.status === 'gamma_generating' || state.status === 'gamma_submitting') return 'Gamma生成中';
+  if (state.status === 'markdown_ready') return '已產生內容';
+  if (state.status === 'markdown_loading') return '內容生成中';
+  if (state.status === 'gamma_failed' || state.status === 'error') return '需重試';
+  return '未開始';
+}
+
+function persistCurrentMarkdownDraft() {
+  if (!currentTargetCompany) return;
+  const state = ensureCompanyCache(currentTargetCompany);
+  if (!state) return;
+  const markdownValue = document.getElementById('markdownEditor').value;
+  if (typeof markdownValue !== 'string') return;
+  if (markdownValue.trim()) {
+    state.markdown = markdownValue;
+    if (state.status === 'idle') {
+      state.status = 'markdown_ready';
+    }
+    state.updatedAt = Date.now();
+  }
+}
+
+function renderStep2CompanySelector() {
+  const wrap = document.getElementById('step2CompanyWrap');
+  const select = document.getElementById('step2CompanySelect');
+  const hint = document.getElementById('step2CompanyHint');
+  const btnNext = document.getElementById('btnNext');
+  const companies = extractCompanyNames(analyzeResult?.items || []);
+
+  if (companies.length <= 1) {
+    wrap.classList.add('hidden');
+    btnNext.textContent = '下一步：生成簡報';
+    selectedReportCompany = companies[0] || (analyzeResult?.company_name || '未命名公司');
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  if (!selectedReportCompany || !companies.includes(selectedReportCompany)) {
+    selectedReportCompany = companies[0];
+  }
+
+  select.innerHTML = companies
+    .map(name => `<option value="${name}">${name}（${getCompanyExecutionLabel(name)}）</option>`)
+    .join('');
+  select.value = selectedReportCompany;
+  select.onchange = () => {
+    selectedReportCompany = (select.value || '').trim();
+  };
+
+  const completed = companies.filter(name => getCompanyExecutionLabel(name) === 'Gamma完成').length;
+  const running = companies.filter(name => getCompanyExecutionLabel(name) === 'Gamma生成中').length;
+  hint.textContent = `共 ${companies.length} 間公司，可切換處理。已完成 ${completed} 間，生成中 ${running} 間。`;
+  btnNext.textContent = '下一步：處理所選公司';
+}
+
+function renderReportCompanySelector() {
+  const wrap = document.getElementById('reportCompanyWrap');
+  const select = document.getElementById('reportCompanySelect');
+  const hint = document.getElementById('reportCompanyHint');
+  const companies = extractCompanyNames(analyzeResult?.items || []);
+
+  if (companies.length <= 1) {
+    wrap.classList.add('hidden');
+    selectedReportCompany = companies[0] || (analyzeResult?.company_name || '未命名公司');
+    currentTargetCompany = selectedReportCompany;
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  select.innerHTML = companies
+    .map(name => `<option value="${name}">${name}（${getCompanyExecutionLabel(name)}）</option>`)
+    .join('');
+  if (selectedReportCompany && companies.includes(selectedReportCompany)) {
+    select.value = selectedReportCompany;
+  } else {
+    selectedReportCompany = companies[0];
+    select.value = selectedReportCompany;
+  }
+  select.onchange = () => {
+    persistCurrentMarkdownDraft();
+    selectedReportCompany = (select.value || '').trim();
+    currentTargetCompany = selectedReportCompany;
+    renderStep3ForCompany(selectedReportCompany);
+  };
+  hint.textContent = `共偵測到 ${companies.length} 間公司，可來回切換且保留各公司暫存進度。`;
+}
+
+function resolveStep3TargetPayload(companyName = '') {
+  if (!analyzeResult) return null;
+  const rows = analyzeResult.items || [];
+  const companies = extractCompanyNames(rows);
+  let targetCompany = companyName || selectedReportCompany || currentTargetCompany || '';
+  let sourceItems = rows;
+
+  if (companies.length > 1) {
+    if (!targetCompany || !companies.includes(targetCompany)) {
+      targetCompany = companies[0];
+    }
+    sourceItems = rows.filter(i => getItemCompanyName(i) === targetCompany);
+  } else if (companies.length === 1) {
+    targetCompany = companies[0];
+  } else {
+    targetCompany = analyzeResult.company_name || '未命名公司';
+  }
+
+  const vccItems = sourceItems.filter(isPptCandidate);
+  if (!vccItems.length) {
+    throw new Error(`${targetCompany} 沒有可用於簡報的候選項目（絕對適合/高度適合/條件適合）`);
+  }
+  return { targetCompany, vccItems };
 }
 
 async function analyze() {
+  const mode = getSelectedMode();
+  const isAnalyzeMode = mode === 'analyze';
   const name = document.getElementById('companyName').value.trim();
-  const taxId = document.getElementById('taxId').value.trim();
   const file = document.getElementById('csvFile').files[0];
   const errEl = document.getElementById('step1Error');
   errEl.textContent = '';
+  selectedReportCompany = '';
+  currentTargetCompany = '';
 
-  if (!name || !taxId || !file) {
-    errEl.textContent = '請填寫所有欄位並上傳 CSV 檔案';
+  if (!file) {
+    errEl.textContent = '請上傳 CSV 檔案';
     return;
   }
+  resetPresentationCaches();
 
   const btn = document.getElementById('btnAnalyze');
   btn.disabled = true;
   document.getElementById('step1Loading').classList.add('show');
+  document.getElementById('analyzeProgress').classList.toggle('hidden', !isAnalyzeMode);
+  document.getElementById('analyzeMeta').textContent = '';
+  document.getElementById('analyzeLogs').textContent = '';
+  document.getElementById('cacheDownloadLink').style.display = isAnalyzeMode ? 'inline' : 'none';
+  document.getElementById('step1LoadingText').textContent = isAnalyzeMode
+    ? '正在建立分析任務...'
+    : '正在讀取已標註資料，請稍候...';
 
   const fd = new FormData();
-  fd.append('company_name', name);
-  fd.append('tax_id', taxId);
+  if (!isAnalyzeMode) fd.append('company_name', name);
   fd.append('file', file);
 
   try {
-    const res = await fetch('/api/analyze', { method: 'POST', body: fd });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || '分析失敗');
+    if (isAnalyzeMode) {
+      analyzeResult = await runAnalyzeJob(fd);
+    } else {
+      const res = await fetch('/api/prepare-presentation-csv', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || '載入失敗');
+      }
+      analyzeResult = await res.json();
+      if (!analyzeResult.source_mode) {
+        analyzeResult.source_mode = 'ppt_ready';
+      }
     }
-    analyzeResult = await res.json();
+
     renderStep2();
     setStep(2);
   } catch (e) {
@@ -200,104 +435,418 @@ async function analyze() {
   }
 }
 
+async function runAnalyzeJob(formData) {
+  const startRes = await fetch('/api/analyze', { method: 'POST', body: formData });
+  if (!startRes.ok) {
+    const err = await startRes.json();
+    throw new Error(err.detail || '分析任務建立失敗');
+  }
+  const started = await startRes.json();
+  analyzeJobId = started.job_id;
+
+  document.getElementById('cacheDownloadLink').href = `/api/analyze-jobs/${encodeURIComponent(analyzeJobId)}/cache`;
+  document.getElementById('analyzeMeta').textContent =
+    `總筆數 ${started.total_rows}，唯一項目 ${started.unique_items}，批次 ${started.total_batches}，預估約 ${started.estimated_seconds} 秒`;
+
+  while (true) {
+    await new Promise(r => setTimeout(r, 2000));
+
+    const statusRes = await fetch(`/api/analyze-jobs/${encodeURIComponent(analyzeJobId)}`);
+    if (!statusRes.ok) {
+      throw new Error('讀取分析進度失敗');
+    }
+    const status = await statusRes.json();
+    renderAnalyzeJobStatus(status);
+
+    if (status.status === 'completed') {
+      if (!status.result) {
+        throw new Error('分析完成但找不到結果');
+      }
+      return status.result;
+    }
+    if (status.status === 'failed') {
+      throw new Error(status.error || '分析任務失敗');
+    }
+  }
+}
+
+function renderAnalyzeJobStatus(status) {
+  const progressText = `${status.phase} ${status.processed_batches}/${status.total_batches} 批 (${status.progress_pct}%)`;
+  document.getElementById('step1LoadingText').textContent = `分析中：${progressText}`;
+
+  const remaining = typeof status.estimated_seconds_remaining === 'number'
+    ? status.estimated_seconds_remaining
+    : 0;
+  document.getElementById('analyzeMeta').textContent =
+    `總筆數 ${status.total_rows}，唯一項目 ${status.unique_items}，已跑 ${status.processed_batches}/${status.total_batches} 批，預估剩餘 ${remaining} 秒`;
+
+  const stageLogs = status.stage_logs || [];
+  const lines = stageLogs.slice(-12).map(log => {
+    const t = (log.time || '').replace('T', ' ').replace('Z', '');
+    const msg = log.message || '';
+    const phase = log.phase || '';
+    return `[${t}] ${phase} | ${msg}`;
+  });
+  document.getElementById('analyzeLogs').textContent = lines.join('\n');
+}
+
 function renderStep2() {
+  if (!analyzeResult) return;
   const r = analyzeResult;
+  const isAnalyzeMode = (r.source_mode || 'analyze') === 'analyze';
+  const candidateCount = Number(
+    r.ppt_candidate_items ?? (Array.isArray(r.items) ? r.items.filter(isPptCandidate).length : 0)
+  );
+  const levelCounts = r.vcc_level_counts || {};
+  const countAbsolute = Number(levelCounts['絕對適合'] || 0);
+  const countHigh = Number(levelCounts['高度適合'] || 0);
+  const countConditional = Number(levelCounts['條件適合'] || 0);
+  const countReview = Number(levelCounts['需釐清'] || 0);
+  const countNo = Number(levelCounts['不適合'] || 0);
+
   document.getElementById('statsArea').innerHTML = `
     <div class="stat-card"><div class="value">${r.total_items}</div><div class="label">總項目數</div></div>
-    <div class="stat-card yes"><div class="value">${r.vcc_yes}</div><div class="label">可以</div></div>
-    <div class="stat-card no"><div class="value">${r.vcc_no}</div><div class="label">不行</div></div>
-    <div class="stat-card maybe"><div class="value">${r.vcc_maybe}</div><div class="label">不確定</div></div>
+    <div class="stat-card level-absolute"><div class="value">${countAbsolute}</div><div class="label">絕對適合</div></div>
+    <div class="stat-card level-high"><div class="value">${countHigh}</div><div class="label">高度適合</div></div>
+    <div class="stat-card level-conditional"><div class="value">${countConditional}</div><div class="label">條件適合</div></div>
+    <div class="stat-card level-review"><div class="value">${countReview}</div><div class="label">需釐清</div></div>
+    <div class="stat-card level-no"><div class="value">${countNo}</div><div class="label">不適合</div></div>
+    <div class="stat-card"><div class="value">${candidateCount}</div><div class="label">簡報候選</div></div>
   `;
   const tbody = document.getElementById('resultBody');
   tbody.innerHTML = r.items.map(item => `
     <tr>
+      <td>${item['公司名稱'] || ''}</td>
       <td>${item['費用項目名稱'] || ''}</td>
       <td>${formatNumber(item['金額累計'] || 0)}</td>
       <td>${item['交易筆數'] || ''}</td>
-      <td><span class="badge ${badgeClass(item['VCC判斷'])}">${item['VCC判斷'] || ''}</span></td>
+      <td>${item['VCC適用等級'] || ''}</td>
     </tr>
   `).join('');
+
+  const btnDownload = document.getElementById('btnDownload');
+  const btnNext = document.getElementById('btnNext');
+  const hint = document.getElementById('downloadHint');
+
+  if (isAnalyzeMode && r.filename) {
+    btnDownload.style.display = 'inline-block';
+    btnNext.disabled = true;
+    hint.style.display = 'inline';
+    hint.textContent = '請先下載 CSV 確認結果';
+  } else {
+    btnDownload.style.display = 'none';
+    btnNext.disabled = false;
+    hint.style.display = 'inline';
+    hint.textContent = '已使用標註檔，可直接進入簡報生成';
+  }
+
+  renderStep2CompanySelector();
 }
 
 function downloadCsv() {
-  if (!analyzeResult) return;
+  if (!analyzeResult || !analyzeResult.filename) return;
   window.open(`/api/download/${encodeURIComponent(analyzeResult.filename)}`);
   document.getElementById('btnNext').disabled = false;
   document.getElementById('downloadHint').style.display = 'none';
 }
 
-function goToStep3() {
-  setStep(3);
+function goToStep2FromStep3() {
+  persistCurrentMarkdownDraft();
+  renderStep2CompanySelector();
+  setStep(2);
 }
 
-async function generatePresentation() {
+function goToStep3() {
   if (!analyzeResult) return;
-  const btn = document.getElementById('btnGenerate');
-  btn.disabled = true;
-  btn.style.display = 'none';
-  document.getElementById('step3Loading').classList.add('show');
-  document.getElementById('progressBar').style.display = 'block';
-  document.getElementById('progressFill').style.width = '10%';
-  document.getElementById('step3Status').textContent = '正在用 AI 分類費用項目...';
+  const btnNext = document.getElementById('btnNext');
+  if (btnNext && btnNext.disabled) return;
+  const step2Select = document.getElementById('step2CompanySelect');
+  if (step2Select && step2Select.value) {
+    selectedReportCompany = step2Select.value;
+  }
+  persistCurrentMarkdownDraft();
+  renderReportCompanySelector();
+  setStep(3);
+  renderStep3ForCompany(selectedReportCompany || currentTargetCompany || (analyzeResult.company_name || '未命名公司'));
+}
 
-  const vccItems = analyzeResult.items.filter(i => i['VCC判斷'] === '可以');
+function resetStep3State(clearTarget = false) {
+  if (clearTarget) currentTargetCompany = '';
+  document.getElementById('step3Status').textContent = '';
+  document.getElementById('step3Loading').classList.remove('show');
+  document.getElementById('progressBar').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('gammaResult').style.display = 'none';
+  document.getElementById('gammaResult').innerHTML = '';
+  document.getElementById('categoryArea').innerHTML = '';
+  document.getElementById('markdownEditor').value = '';
+  document.getElementById('markdownSection').classList.add('hidden');
+  document.getElementById('btnSendGamma').classList.add('hidden');
+  document.getElementById('btnGenerateMarkdown').disabled = false;
+  document.getElementById('btnSendGamma').disabled = false;
+}
 
+function renderCategorySummary(categories = {}) {
+  const order = ['高頻次', '固定支出', '高單價', '其他'];
+  const rows = order
+    .map(name => ({ name, count: (categories[name] || []).length }))
+    .filter(x => x.count > 0);
+  if (!rows.length) {
+    document.getElementById('categoryArea').innerHTML = '';
+    return;
+  }
+  const html = rows
+    .map(x => `<div class="stat-card"><div class="value">${x.count}</div><div class="label">${x.name}</div></div>`)
+    .join('');
+  document.getElementById('categoryArea').innerHTML = `<div class="stats">${html}</div>`;
+}
+
+function renderStep3ForCompany(companyName) {
+  if (!companyName) {
+    resetStep3State(true);
+    return;
+  }
+
+  selectedReportCompany = companyName;
+  currentTargetCompany = companyName;
+  const state = ensureCompanyCache(companyName);
+  resetStep3State(false);
+
+  const select = document.getElementById('reportCompanySelect');
+  if (select && select.options.length) {
+    const exists = Array.from(select.options).some(opt => opt.value === companyName);
+    if (exists) select.value = companyName;
+  }
+
+  const defaultStatus = state.markdown
+    ? `已載入 ${companyName} 的暫存內容，可繼續編輯或送出 Gamma`
+    : `目前公司：${companyName}，請先點「1) 先產生簡報內容」`;
+  document.getElementById('step3Status').textContent = state.statusText || defaultStatus;
+
+  if (state.progress > 0) {
+    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('progressFill').style.width = `${state.progress}%`;
+  }
+
+  if (state.markdown) {
+    document.getElementById('markdownEditor').value = state.markdown;
+    document.getElementById('markdownSection').classList.remove('hidden');
+    document.getElementById('btnSendGamma').classList.remove('hidden');
+  }
+
+  renderCategorySummary(state.categories || {});
+
+  if (state.status === 'markdown_loading' || state.status === 'gamma_submitting' || state.status === 'gamma_generating') {
+    document.getElementById('step3Loading').classList.add('show');
+  }
+  if (state.gammaResult) {
+    showGammaResult(state.gammaResult);
+  }
+
+  document.getElementById('btnGenerateMarkdown').disabled = state.status === 'markdown_loading';
+  document.getElementById('btnSendGamma').disabled =
+    !state.markdown.trim() || ['markdown_loading', 'gamma_submitting', 'gamma_generating'].includes(state.status);
+}
+
+async function generateMarkdownPreview() {
+  if (!analyzeResult) return;
   try {
-    // Step 3a: Categorize (done server-side in generate-presentation)
-    document.getElementById('progressFill').style.width = '30%';
-    document.getElementById('step3Status').textContent = '正在生成簡報 Markdown...';
+    const select = document.getElementById('reportCompanySelect');
+    const forcedCompany = select && select.value ? select.value : selectedReportCompany;
+    const payload = resolveStep3TargetPayload(forcedCompany);
+    const companyName = payload.targetCompany;
+    const state = ensureCompanyCache(companyName);
 
-    const res = await fetch('/api/generate-presentation', {
+    selectedReportCompany = companyName;
+    currentTargetCompany = companyName;
+    state.status = 'markdown_loading';
+    state.statusText = `正在產生 ${companyName} 的簡報 Markdown...`;
+    state.progress = 10;
+    state.updatedAt = Date.now();
+    renderStep3ForCompany(companyName);
+
+    const res = await fetch('/api/generate-markdown', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        company_name: analyzeResult.company_name,
-        vcc_items: vccItems,
-        categories: {},
+        company_name: companyName,
+        vcc_items: payload.vccItems,
       }),
     });
 
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.detail || '生成失敗');
+      throw new Error(err.detail || '產生 Markdown 失敗');
     }
-
     const result = await res.json();
-    document.getElementById('progressFill').style.width = '70%';
-
-    // 如果需要 polling
-    if (result.generation_id && result.status !== 'completed') {
-      document.getElementById('step3Status').textContent = '簡報生成中，請稍候...';
-      await pollGammaStatus(result.generation_id);
-    } else {
-      showGammaResult(result);
+    state.markdown = result.markdown_preview || '';
+    state.categories = result.categories || {};
+    state.eligibleItemCount = Number(result.eligible_item_count || 0);
+    state.status = 'markdown_ready';
+    state.statusText = `Markdown 準備完成（${companyName}，候選 ${state.eligibleItemCount} 項）`;
+    state.progress = 100;
+    state.gammaResult = null;
+    state.generationId = '';
+    state.updatedAt = Date.now();
+    renderStep2CompanySelector();
+    renderReportCompanySelector();
+    if (currentTargetCompany === companyName) {
+      renderStep3ForCompany(companyName);
     }
   } catch (e) {
-    document.getElementById('step3Status').textContent = `錯誤: ${e.message}`;
-  } finally {
-    document.getElementById('step3Loading').classList.remove('show');
+    const state = ensureCompanyCache(currentTargetCompany || selectedReportCompany || '');
+    if (state) {
+      state.status = 'error';
+      state.statusText = `錯誤: ${e.message}`;
+      state.updatedAt = Date.now();
+      renderStep2CompanySelector();
+      renderReportCompanySelector();
+    }
+    if (currentTargetCompany) {
+      renderStep3ForCompany(currentTargetCompany);
+    } else {
+      document.getElementById('step3Status').textContent = `錯誤: ${e.message}`;
+    }
   }
 }
 
-async function pollGammaStatus(generationId) {
-  let progress = 70;
-  while (true) {
-    await new Promise(r => setTimeout(r, 3000));
-    progress = Math.min(progress + 5, 95);
-    document.getElementById('progressFill').style.width = `${progress}%`;
+async function sendToGamma() {
+  if (!currentTargetCompany) {
+    document.getElementById('step3Status').textContent = '請先完成 Markdown 產生';
+    return;
+  }
+  const markdownContent = document.getElementById('markdownEditor').value.trim();
+  if (!markdownContent) {
+    document.getElementById('step3Status').textContent = 'Markdown 內容不能為空';
+    return;
+  }
+  const state = ensureCompanyCache(currentTargetCompany);
+  const dataVersion = activeDataVersion;
+  state.markdown = markdownContent;
+  state.status = 'gamma_submitting';
+  state.statusText = `正在送出 ${currentTargetCompany} 到 Gamma...`;
+  state.progress = 15;
+  state.updatedAt = Date.now();
+  renderStep3ForCompany(currentTargetCompany);
 
-    const res = await fetch(`/api/gamma-status/${generationId}`);
-    const result = await res.json();
+  try {
+    const res = await fetch('/api/generate-gamma', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        company_name: currentTargetCompany,
+        markdown_content: markdownContent,
+        num_cards: 7,
+      }),
+    });
 
-    if (result.status === 'completed' || result.status === 'failed') {
-      showGammaResult(result);
-      return;
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || '送出 Gamma 失敗');
     }
+
+    const result = await res.json();
+    if (activeDataVersion !== dataVersion) return;
+
+    state.gammaResult = null;
+    if (result.generation_id && result.status !== 'completed') {
+      state.status = 'gamma_generating';
+      state.statusText = '簡報生成中，請稍候...';
+      state.progress = 70;
+      state.generationId = result.generation_id;
+      state.updatedAt = Date.now();
+      renderStep2CompanySelector();
+      renderReportCompanySelector();
+      renderStep3ForCompany(currentTargetCompany);
+      startGammaPolling(currentTargetCompany, result.generation_id, dataVersion);
+    } else {
+      state.status = result.status === 'completed' ? 'gamma_completed' : 'gamma_failed';
+      state.statusText = result.status === 'completed' ? 'Gamma 已完成簡報生成' : 'Gamma 生成失敗，請稍後再試';
+      state.progress = 100;
+      state.gammaResult = result;
+      state.generationId = '';
+      state.updatedAt = Date.now();
+      renderStep2CompanySelector();
+      renderReportCompanySelector();
+      renderStep3ForCompany(currentTargetCompany);
+    }
+  } catch (e) {
+    state.status = 'error';
+    state.statusText = `錯誤: ${e.message}`;
+    state.updatedAt = Date.now();
+    renderStep2CompanySelector();
+    renderReportCompanySelector();
+    renderStep3ForCompany(currentTargetCompany);
+  }
+}
+
+async function startGammaPolling(companyName, generationId, dataVersion) {
+  if (!companyName || !generationId) return;
+  if (gammaPollingByCompany[companyName]) return;
+
+  gammaPollingByCompany[companyName] = true;
+  let failCount = 0;
+  while (true) {
+    if (activeDataVersion !== dataVersion) break;
+    const state = ensureCompanyCache(companyName);
+    if (!state || state.generationId !== generationId) break;
+    await sleep(3000);
+
+    try {
+      const res = await fetch(`/api/gamma-status/${generationId}`);
+      if (!res.ok) throw new Error('查詢 Gamma 狀態失敗');
+      const result = await res.json();
+      failCount = 0;
+
+      if (result.status === 'completed' || result.status === 'failed') {
+        state.status = result.status === 'completed' ? 'gamma_completed' : 'gamma_failed';
+        state.statusText = result.status === 'completed'
+          ? 'Gamma 已完成簡報生成'
+          : 'Gamma 生成失敗，請稍後再試';
+        state.progress = 100;
+        state.gammaResult = result;
+        state.generationId = '';
+        state.updatedAt = Date.now();
+        break;
+      }
+
+      state.status = 'gamma_generating';
+      state.statusText = `簡報生成中（${companyName}）...`;
+      state.progress = Math.min(Number(state.progress || 70) + 5, 95);
+      state.updatedAt = Date.now();
+    } catch (err) {
+      failCount += 1;
+      state.status = 'gamma_generating';
+      state.statusText = `查詢 Gamma 進度失敗（第 ${failCount} 次），持續重試中...`;
+      state.updatedAt = Date.now();
+      if (failCount >= 5) {
+        state.status = 'error';
+        state.statusText = 'Gamma 狀態查詢持續失敗，請稍後重新送出';
+        state.generationId = '';
+        state.updatedAt = Date.now();
+        break;
+      }
+    }
+
+    renderStep2CompanySelector();
+    renderReportCompanySelector();
+    if (currentTargetCompany === companyName) {
+      renderStep3ForCompany(companyName);
+    }
+  }
+  delete gammaPollingByCompany[companyName];
+  renderStep2CompanySelector();
+  renderReportCompanySelector();
+  if (currentTargetCompany === companyName) {
+    renderStep3ForCompany(companyName);
   }
 }
 
 function showGammaResult(result) {
-  document.getElementById('progressFill').style.width = '100%';
+  if (result.status === 'completed') {
+    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('progressFill').style.width = '100%';
+  }
   const el = document.getElementById('gammaResult');
   el.style.display = 'block';
 
@@ -314,6 +863,36 @@ function showGammaResult(result) {
     el.innerHTML = `<p style="color:#c62828">簡報生成失敗，請稍後再試。</p>`;
   }
 }
+
+function initStepperNavigation() {
+  const s1 = document.getElementById('stepper-1');
+  const s2 = document.getElementById('stepper-2');
+  const s3 = document.getElementById('stepper-3');
+
+  s1.style.cursor = 'pointer';
+  s2.style.cursor = 'pointer';
+  s3.style.cursor = 'pointer';
+
+  s1.onclick = () => {
+    persistCurrentMarkdownDraft();
+    setStep(1);
+  };
+  s2.onclick = () => {
+    if (!analyzeResult) return;
+    persistCurrentMarkdownDraft();
+    renderStep2CompanySelector();
+    setStep(2);
+  };
+  s3.onclick = () => {
+    if (!analyzeResult) return;
+    const btnNext = document.getElementById('btnNext');
+    if (btnNext && btnNext.disabled) return;
+    goToStep3();
+  };
+}
+
+onModeChange();
+initStepperNavigation();
 </script>
 </body>
 </html>

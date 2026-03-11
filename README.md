@@ -5,8 +5,12 @@ VCC（Virtual Credit Card）刷卡適性分類工具。上傳企業費用項目 
 ## 功能
 
 1. **VCC 適性分析** — 上傳 CSV，AI 判斷每筆費用項目為「可以 / 不行 / 不確定」
+   - 分析模式採「多段批次」執行，支援進度輪詢與快取紀錄下載
 2. **費用分類** — 將 VCC 可行項目分為：高頻次、固定支出、高單價、其他
 3. **簡報生成** — 呼叫 Gamma API 自動產生客戶提案簡報（PPTX）
+4. **雙模式上傳** —
+   - 分析模式：上傳未標註 CSV，先做 VCC 判斷
+   - PPT模式：上傳已標註 CSV（含 `VCC判斷`），直接進入簡報流程
 
 ## Tech Stack
 
@@ -43,13 +47,22 @@ uv run uvicorn app.main:app --reload --port 8080
 | `交易日期起` | 最早交易日期 |
 | `交易日期迄` | 最晚交易日期 |
 
+PPT模式（上傳已標註檔）另外需要：
+
+| 欄位 | 說明 |
+|------|------|
+| `VCC判斷` | 已判斷結果（可以/不行/不確定） |
+
 ## API
 
 | Method | Path | 說明 |
 |--------|------|------|
 | `GET` | `/` | Web UI |
 | `GET` | `/health` | 健康檢查 |
-| `POST` | `/api/analyze` | 上傳 CSV 進行 VCC 適性分析 |
+| `POST` | `/api/analyze` | 上傳 CSV 建立分析任務（回傳 `job_id`） |
+| `GET` | `/api/analyze-jobs/{job_id}` | 查詢多段分析進度與結果 |
+| `GET` | `/api/analyze-jobs/{job_id}/cache` | 下載任務快取紀錄 JSON |
+| `POST` | `/api/prepare-presentation-csv` | 上傳已標註 CSV，準備簡報資料 |
 | `GET` | `/api/download/{filename}` | 下載分析結果 CSV |
 | `POST` | `/api/generate-presentation` | 生成 Gamma 簡報 |
 | `GET` | `/api/gamma-status/{generation_id}` | 查詢簡報生成狀態 |
